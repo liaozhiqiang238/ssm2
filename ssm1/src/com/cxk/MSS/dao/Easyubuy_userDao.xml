@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cxk.MSS.dao.Easyubuy_userDao">
+    <select id="cx" resultType="Easybuy_user">
+      select * from Easybuy_user where loginName=#{loginName} and password=#{password} 
+     </select>
+     <insert id="insert" parameterType="Easybuy_user" >
+         INSERT  INTO `easybuy_user` (`loginName`,`userName`,`password`,`sex`,`identityCode`,`email`,`mobile`,`type`) VALUE(#{loginName},#{userName},#{password},#{sex},#{identityCode},#{email},#{mobile},#{type})       
+     </insert>
+     <select id="SB" resultType="int" parameterType="java.lang.String"><!--parameterType 传入的参数类型-->
+        select count(*) from Easybuy_user where loginName=#{loginName}
+     </select>
+       
+     <select id="gun" resultType="Easybuy_user">
+          SELECT * FROM Easybuy_user
+     </select>
+     <insert id="ass" parameterType="Easybuy_user_address">
+          INSERT INTO easybuy_user_address(`userId`,`address`,`createTime`,`isDefault`,`remark`) VALUE(#{userId},#{address},#{createTime},#{isDefault},#{remark})
+     </insert>
+     <delete id="Dele"  parameterType="int">
+          DELETE FROM easybuy_user WHERE id=#{id}
+     </delete>
+     
+     <select id="Paging"  resultType="Easybuy_user"> 
+           select * from easybuy_user
+           <where>
+                 <if test="u.loginName!=null and u.loginName!=''">
+                         and loginName like '%${u.loginName}'
+                 </if>
+                 <if test="u.userName!=null and u.userName!=''">
+                         and userName like '%${u.userName}'
+                 </if>
+                 <if test="u.sex!=null">
+                        and sex=#{u.sex}
+                 </if>
+                 <if test="u.mobile!=null and u.mobile!=''">
+                       and mobile like '%${u.mobile}'
+                 </if>
+          </where>
+          limit #{pageIndex},#{pageSize}
+     </select>
+     
+     <select id="Count" resultType="int" >
+             select count(*) from easybuy_user
+             <where>
+                 <if test="loginName!=null and loginName!=''">
+                         and loginName like '%${loginName}'
+                 </if>
+                 <if test="userName!=null and userName!=''">
+                         and userName like '%${userName}'
+                 </if>
+                 <if test="sex!=null">
+                        and sex=#{sex}
+                 </if>
+                 <if test="mobile!=null and mobile!=''">
+                       and mobile like '%${mobile}'
+                 </if>
+             </where>
+     </select>
+     
+</mapper>

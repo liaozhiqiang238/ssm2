@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+		http://www.springframework.org/schema/aop 
+		http://www.springframework.org/schema/aop/spring-aop-3.2.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.2.xsd 
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx-3.2.xsd 
+		http://www.springframework.org/schema/mvc 
+		http://www.springframework.org/schema/mvc/spring-mvc.xsd" 
+		xmlns:mvc="http://www.springframework.org/schema/mvc" 
+		xmlns:tx="http://www.springframework.org/schema/tx" 
+		xmlns:context="http://www.springframework.org/schema/context" 
+		xmlns:aop="http://www.springframework.org/schema/aop" 
+		xmlns:p="http://www.springframework.org/schema/p" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns="http://www.springframework.org/schema/beans">
+
+			<aop:aspectj-autoproxy/>
+						
+			<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">			
+			   <property value="classpath:bd.properties" name="location"/>			
+			</bean>
+			
+			<!-- 创建spring框架提供的数据源对象 -->
+     		<bean class="org.apache.commons.dbcp.BasicDataSource" name="abc">			
+				<property value="${driverName}" name="driverClassName"/>			
+				<property value="${url}" name="url"/>			
+				<property value="${root}" name="username"/>			
+				<property value="${password}" name="password"/>			
+			</bean>
+			
+			<!-- 创建spring和mybatis整合后用的工厂对象 -->
+		
+			<bean class="org.mybatis.spring.SqlSessionFactoryBean" id="fact">			
+			     <property name="dataSource" ref="abc"></property>
+			     <property name="configLocation" value="classpath:mybatis-config.xml"></property>
+			</bean>	
+			<!-- mapper扫描器，来创建dao接口的实现类 -->				
+			<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">			
+				<property value="com.cxk.MSS.dao" name="basePackage"/>			
+				<property value="fact" name="sqlSessionFactoryBeanName"/>			
+			</bean>			
+			<context:component-scan base-package="com.cxk.MSS.seiver"/>
+			
+			<!--配置spring的事务 增删改-->
+			<bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="trans">
+			     <property name="dataSource" ref="abc"/>			
+			</bean>
+			
+			<!-- 事务级别 -->
+			<tx:advice id="txAdvice" transaction-manager="trans">
+		    <tx:attributes>
+					<tx:method name="cx" propagation="REQUIRED"/><!--必须开启事物-->
+					<tx:method name="insert" propagation="REQUIRED"/>
+					<tx:method name="gun" propagation="REQUIRED"/>
+					<tx:method name="ass" propagation="REQUIRED"/>
+					<tx:method name="SB" propagation="REQUIRED"/>
+					<tx:method name="*" propagation="SUPPORTS" read-only="true"/><!--spring不会给你开启事物-->
+			</tx:attributes>
+			</tx:advice>
+			<!--配置aop-->			
+			<aop:config>		
+					<aop:pointcut id="qrd" expression="execution(* com.cxk.MSS.seiver.*.*(..))"/>					
+					<!-- 将切入点和事务组合-->
+					<aop:advisor pointcut-ref="qrd" advice-ref="txAdvice"/>		
+			</aop:config>
+			
+			<context:component-scan base-package="com.cxk.MSS"/>
+			
+			<!-- 负责将方法和请求url对应 当中既有映射器又有是是适配器 -->		
+			<mvc:annotation-driven>	
+				<mvc:message-converters>
+					<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+						<property name="supportedMediaTypes">
+						<list>			
+							<value>application/json;charset=UTF-8</value>			
+							<value>text/plain;charset=UTF-8</value>			
+						</list>			
+						</property>		
+					<!--日期格式-->
+				    <!-- <property name="features"><list><value>WriteDateUseDateFormat</value></list></property> -->
+					</bean>			
+				 
+				</mvc:message-converters>			
+			</mvc:annotation-driven>			
+			<!-- 3.视图解析器 拼前缀后缀 -->
+     		<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">	
+				<property value="/" name="prefix"/>			
+				<property value=".jsp" name="suffix"/>		
+			</bean>		
+			
+			<!--文件上传-->	
+			<bean class="org.springframework.web.multipart.commons.CommonsMultipartResolver"  id="multipartResolver">		
+				<!--设置上传文件大小-->		
+				<property name="maxUploadSize">		
+				<value>5242880</value>		
+				</property>		
+			</bean>
+            <!--拦截器-->
+				 <mvc:interceptors>
+					<!--&lt;!&ndash;<bean class="com.ma.interceptor.CustomeInterceptor" />&ndash;&gt;
+					&lt;!&ndash;拦截器1&ndash;&gt;-->
+					<mvc:interceptor>
+						<!--&lt;!&ndash;配置拦截器的作用路径&ndash;&gt;-->
+						<mvc:mapping path="abc/**/"/>
+						<!--&lt;!&ndash;定义在<mvc:interceptor>下面的表示匹配指定路径的请求才进行拦截&ndash;&gt;-->
+						<mvc:exclude-mapping path="login.jsp"/>
+						<bean class="com.cxk.MSS.InterceptorTest.InterceptorTest"></bean>
+					</mvc:interceptor>
+				</mvc:interceptors>
+			<!--在spring 配置文件中加上，来忽略以下目录-->						
+				<!--<mvc:resources mapping="/jsp/**" location="/jsp/"/>			-->
+				<mvc:resources mapping="/css/**" location="/css/"/>			
+				<mvc:resources mapping="/images/**" location="/images/"/>				
+				<!--<mvc:resources mapping="/photo/**" location="/photo/"/>-->
+</beans>
